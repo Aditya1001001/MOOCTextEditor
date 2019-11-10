@@ -40,7 +40,30 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
 	public boolean addWord(String word)
 	{
 	    //TODO: Implement this method.
-	    return false;
+		TrieNode current = root;
+	    boolean isNewWord = false;
+
+	    word = word.toLowerCase();
+
+	    for (char c:word.toCharArray()) {
+	      // Not yet in trie:
+	      if (current.getChild(c) == null) {
+	        current = current.insert(c);
+	        isNewWord = true;
+	      // Already in the trie:
+	      } else {
+	        current = current.getChild(c);
+	        //isNewWord = false;
+	      }
+	    }
+
+	    // If we end up here, at the end of the loop, we know that word is a word
+	    if (current.endsWord() == false) {
+	      this.size++;
+	      current.setEndsWord(true);
+	    }
+
+	    return isNewWord;
 	}
 	
 	/** 
@@ -50,7 +73,7 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
 	public int size()
 	{
 	    //TODO: Implement this method
-	    return 0;
+		return this.size;
 	}
 	
 	
@@ -60,7 +83,21 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
 	public boolean isWord(String s) 
 	{
 	    // TODO: Implement this method
-		return false;
+		TrieNode current = root;
+
+	    s = s.toLowerCase();
+
+	    for(char c: s.toCharArray()) {
+
+	      current = current.getChild(c);
+
+	      if(current == null) {
+	        return false;
+	      }
+
+	    }
+
+	    return current.endsWord();
 	}
 
 	/** 
@@ -101,7 +138,45 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
     	 //       Add all of its child nodes to the back of the queue
     	 // Return the list of completions
     	 
-         return null;
+    	    LinkedList<TrieNode> nodesQueue = new LinkedList<TrieNode>();
+    	    List<String> completions = new LinkedList<>();
+    	    TrieNode current;
+
+    	    prefix = prefix.toLowerCase();
+
+    	    // Find the stem in the trie, If we manage to finish the loop without return, the stem is
+    	    //  in the trie, and current reflects the stem's node
+    	    current = root;
+    	    for (char c:prefix.toCharArray()) {
+    	      TrieNode t = current.getChild(c);
+    	      if (t == null) {
+    	        return completions;
+    	      }
+    	      current = t;
+    	    }
+
+    	    // The stem is in the trie, so we have to add the current node to the nodesQueue
+    	    nodesQueue.add(current);
+
+
+    	    while (!nodesQueue.isEmpty() && completions.size() < numCompletions) {
+
+    	      current = nodesQueue.remove();
+
+    	      if (current.endsWord()) {
+    	        completions.add(current.getText());
+    	      }
+
+    	      //  Add child nodes to the nodesQueue:
+    	      Set<Character> children = current.getValidNextCharacters();
+
+    	      for (char c: children) {
+    	        nodesQueue.add(current.getChild(c));
+    	      }
+
+    	    }
+
+    	    return completions;
      }
 
  	// For debugging
